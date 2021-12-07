@@ -1,0 +1,58 @@
+--- main.c	2021-12-04 11:19:50.546000000 +0530
++++ main-patched.c	2021-12-04 12:38:48.817553013 +0530
+@@ -128,11 +128,12 @@
+ 
+ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
+ 	InitializeLib(ImageHandle, SystemTable);
+-	Print(L"String blah blah blah \n\r");
++	Print(L"Loading OS\n\r");
+ 
+ 	EFI_FILE* Kernel = LoadFile(NULL, L"kernel.elf", ImageHandle, SystemTable);
+ 	if (Kernel == NULL){
+-		Print(L"Could not load kernel \n\r");
++		Print(L"Could not load kernel! Aborting..\n\r");
++		while(1);
+ 	}
+ 	else{
+ 		Print(L"Kernel Loaded Successfully \n\r");
+@@ -159,7 +160,7 @@
+ 		header.e_version != EV_CURRENT
+ 	)
+ 	{
+-		Print(L"kernel format is bad\r\n");
++		Print(L"kernel header is bad, please redownload or recompile! Aborting..\r\n"); while(1);
+ 	}
+ 	else
+ 	{
+@@ -195,12 +196,12 @@
+ 		}
+ 	}
+ 
+-	Print(L"Kernel Loaded\n\r");
++	Print(L"Kernel Loaded! Loading fonts...\n\r");
+ 	
+-
+-	PSF1_FONT* newFont = LoadPSF1Font(NULL, L"zap-light16.psf", ImageHandle, SystemTable);
++	PSF1_FONT* newFont = LoadPSF1Font(NULL, L"font.psf", ImageHandle, SystemTable);
+ 	if (newFont == NULL){
+-		Print(L"Font is not valid or is not found\n\r");
++		Print(L"Font is not valid or is not found! Aborting..\n\r");
++		while(1);
+ 	}
+ 	else
+ 	{
+@@ -210,12 +211,13 @@
+ 
+ 	Framebuffer* newBuffer = InitializeGOP();
+ 
+-	Print(L"Base: 0x%x\n\rSize: 0x%x\n\rWidth: %d\n\rHeight: %d\n\rPixelsPerScanline: %d\n\r", 
++	Print(L"Base: 0x%x\n\rSize: 0x%x\n\rWidth: %d\n\rHeight: %d\n\rPixelsPerScanline: %d\n\rBooting OS...", 
+ 	newBuffer->BaseAddress, 
+ 	newBuffer->BufferSize, 
+ 	newBuffer->Width, 
+ 	newBuffer->Height, 
+ 	newBuffer->PixelsPerScanLine);
++	uefi_call_wrapper(SystemTable->ConOut->ClearScreen, 1, SystemTable->ConOut);
+ 
+ 	EFI_MEMORY_DESCRIPTOR* Map = NULL;
+ 	UINTN MapSize, MapKey;
